@@ -17,7 +17,8 @@ export interface PhotoChecklistItem {
   description: string;
   isRequired: boolean;
   angleOrFeature: string;
-  capturedPhotoId?: string; // links to CapturedPhoto
+  capturedPhotoId?: string; // legacy single link
+  capturedPhotoIds?: string[]; // multiple photos support
 }
 
 export interface CapturedPhoto {

@@ -54,6 +54,7 @@ export default function App() {
   const [captureSession, setCaptureSession] = useState<{
     stage: RepairStage;
     item?: PhotoChecklistItem;
+    existingCount?: number;
   } | null>(null);
 
   // Inspector modal state
@@ -129,6 +130,15 @@ export default function App() {
     setActiveProjectId(newProj.id);
   };
 
+  // Delete an entire project and its photos
+  const handleDeleteProject = async (projectId: string) => {
+    await deleteProjectFromStorage(projectId);
+    setProjects((prev) => prev.filter((p) => p.id !== projectId));
+    if (activeProjectId === projectId) {
+      setActiveProjectId(null);
+    }
+  };
+
   // Handle Photo Captured via Camera
   const handlePhotoCaptured = async (photoData: {
     dataUrl: string;
@@ -161,14 +171,19 @@ export default function App() {
       fileSizeBytes: photoData.fileSizeBytes,
     };
 
-    // Update stages checklist item reference
+    // Update stages checklist item reference - supports multiple photos
     const updatedStages = activeProject.stages.map((stg) => {
       if (stg.id === captureSession.stage.id) {
         return {
           ...stg,
           checklist: stg.checklist.map((chk) => {
             if (chk.id === photoData.checklistItemId) {
-              return { ...chk, capturedPhotoId: newPhoto.id };
+              const currentIds = chk.capturedPhotoIds || (chk.capturedPhotoId ? [chk.capturedPhotoId] : []);
+              return {
+                ...chk,
+                capturedPhotoId: newPhoto.id, // latest photo
+                capturedPhotoIds: [...currentIds, newPhoto.id], // append to multiple photos list
+              };
             }
             return chk;
           }),
@@ -209,9 +224,14 @@ export default function App() {
     const updatedPhotos = activeProject.photos.filter((p) => p.id !== photoId);
     const updatedStages = activeProject.stages.map((stg) => ({
       ...stg,
-      checklist: stg.checklist.map((chk) =>
-        chk.capturedPhotoId === photoId ? { ...chk, capturedPhotoId: undefined } : chk
-      ),
+      checklist: stg.checklist.map((chk) => {
+        const nextIds = chk.capturedPhotoIds ? chk.capturedPhotoIds.filter((id) => id !== photoId) : undefined;
+        return {
+          ...chk,
+          capturedPhotoId: chk.capturedPhotoId === photoId ? (nextIds && nextIds.length > 0 ? nextIds[nextIds.length - 1] : undefined) : chk.capturedPhotoId,
+          capturedPhotoIds: nextIds,
+        };
+      }),
     }));
 
     const updatedProject: RepairProject = {
@@ -283,12 +303,13 @@ export default function App() {
             project={activeProject}
             onBackToHome={() => setActiveProjectId(null)}
             onOpenExplorer={() => setIsExplorerModalOpen(true)}
-            onStartCapture={(stage, item) => setCaptureSession({ stage, item })}
+            onStartCapture={(stage, item, count) => setCaptureSession({ stage, item, existingCount: count })}
             onInspectPhoto={(photo) => setInspectedPhoto(photo)}
             onOpenReport={() => setIsReportModalOpen(true)}
             onExportZip={() => exportProjectZip(activeProject)}
             onUpdateStageStatus={handleUpdateStageStatus}
             onSelectStage={handleSelectStage}
+            onDeleteProject={handleDeleteProject}
           />
         ) : (
           /* 1. HOME SCREEN (Sub-goal 1 Specification) */
@@ -409,6 +430,7 @@ export default function App() {
                       key={project.id}
                       project={project}
                       onOpenProject={(id) => setActiveProjectId(id)}
+                      onDeleteProject={handleDeleteProject}
                     />
                   ))}
                 </div>
@@ -461,6 +483,7 @@ export default function App() {
           checklistItemId={captureSession.item?.id}
           checklistItemTitle={captureSession.item?.title || 'General_Inspection'}
           leadEngineer={activeProject.leadEngineer}
+          existingPhotosCount={captureSession.existingCount}
           onPhotoCaptured={handlePhotoCaptured}
         />
       )}

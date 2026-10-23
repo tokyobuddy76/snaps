@@ -16,19 +16,22 @@ import {
   ShieldAlert,
   Layers,
   Image as ImageIcon,
-  Check
+  Check,
+  Trash2,
+  Plus
 } from 'lucide-react';
 
 interface StageChecklistViewProps {
   project: RepairProject;
   onBackToHome: () => void;
   onOpenExplorer: () => void;
-  onStartCapture: (stage: RepairStage, item?: PhotoChecklistItem) => void;
+  onStartCapture: (stage: RepairStage, item?: PhotoChecklistItem, existingCount?: number) => void;
   onInspectPhoto: (photo: CapturedPhoto) => void;
   onOpenReport: () => void;
   onExportZip: () => void;
   onUpdateStageStatus: (stageId: string, newStatus: 'Pending' | 'In Progress' | 'Complete') => void;
   onSelectStage: (stageId: string) => void;
+  onDeleteProject: (projectId: string) => void;
 }
 
 export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
@@ -41,8 +44,10 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
   onExportZip,
   onUpdateStageStatus,
   onSelectStage,
+  onDeleteProject,
 }) => {
   const [activeTab, setActiveTab] = useState<'checklist' | 'photos'>('checklist');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const currentStage = project.stages.find((s) => s.id === project.currentStageId) || project.stages[0];
   const stagePhotos = project.photos.filter((p) => p.stageId === currentStage.id);
@@ -99,10 +104,10 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
         </div>
 
         {/* Global Project Actions */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
           <button
             onClick={onOpenReport}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors border border-slate-700 min-h-[42px] cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors border border-slate-700 min-h-[42px] cursor-pointer"
           >
             <FileText className="w-4 h-4 text-amber-400" />
             <span className="hidden sm:inline">Report Sheet</span>
@@ -110,7 +115,7 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
 
           <button
             onClick={onExportZip}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors border border-slate-700 min-h-[42px] cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors border border-slate-700 min-h-[42px] cursor-pointer"
           >
             <Download className="w-4 h-4 text-sky-400" />
             <span className="hidden sm:inline">Download ZIP</span>
@@ -118,10 +123,19 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
 
           <button
             onClick={() => onStartCapture(currentStage)}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-colors shadow-sm min-h-[42px] cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-colors shadow-sm min-h-[42px] cursor-pointer"
           >
             <Camera className="w-4 h-4 stroke-[2.5]" />
             <span>Take Photo</span>
+          </button>
+
+          {/* Delete Whole Project Button */}
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            title="Delete this entire project"
+            className="flex items-center justify-center p-2.5 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-800/60 rounded-xl transition-colors min-h-[42px] min-w-[42px] cursor-pointer"
+          >
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -257,139 +271,153 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
             <span className="font-semibold uppercase tracking-wider text-[11px]">
               Required Photo Work Instruction
             </span>
-            <span>Tap "Capture Photo" to record and auto-file</span>
+            <span>Multiple photos can be captured per item</span>
           </div>
 
           <div className="space-y-3">
             {currentStage.checklist.map((item) => {
-              // Find if this item has an attached photo
-              const attachedPhoto = project.photos.find(
-                (p) => p.checklistItemId === item.id || p.id === item.capturedPhotoId
+              // Find ALL photos attached to this specific work instruction item
+              const attachedPhotos = project.photos.filter(
+                (p) =>
+                  p.checklistItemId === item.id ||
+                  (item.capturedPhotoIds && item.capturedPhotoIds.includes(p.id)) ||
+                  p.id === item.capturedPhotoId
               );
 
               return (
                 <div
                   key={item.id}
-                  className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
-                    attachedPhoto
+                  className={`p-4 rounded-2xl border transition-all flex flex-col gap-3.5 ${
+                    attachedPhotos.length > 0
                       ? 'bg-slate-900/90 border-slate-800 hover:border-slate-700'
                       : item.isRequired
                       ? 'bg-slate-900/60 border-amber-500/30 hover:border-amber-500/60'
                       : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700'
                   }`}
                 >
-                  <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                    {/* Status check icon */}
-                    <div className="mt-0.5 shrink-0">
-                      {attachedPhoto ? (
-                        <div className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
-                          <Check className="w-4 h-4 stroke-[3]" />
-                        </div>
-                      ) : (
-                        <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center border ${
-                            item.isRequired
-                              ? 'border-amber-400/60 text-amber-400 bg-amber-500/10'
-                              : 'border-slate-700 text-slate-500 bg-slate-900'
-                          }`}
-                        >
-                          <Circle className="w-3.5 h-3.5" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <h3 className="text-sm font-bold text-white">
-                          {item.title}
-                        </h3>
-                        {item.isRequired ? (
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
-                            Required
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-slate-500">
-                            Optional
-                          </span>
-                        )}
-                        {attachedPhoto?.conditionRating && (
-                          <>
-                            <span className="text-slate-600">·</span>
-                            <span className="text-[10px] font-mono text-emerald-400">
-                              [{attachedPhoto.conditionRating}]
-                            </span>
-                          </>
-                        )}
-                      </div>
-
-                      <p className="text-xs text-slate-400 leading-relaxed">
-                        {item.description}
-                      </p>
-
-                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 font-mono">
-                        <span>Target: {item.angleOrFeature}</span>
-                        {attachedPhoto && (
-                          <>
-                            <span className="text-slate-700">·</span>
-                            <span className="text-slate-400 truncate max-w-[280px]">
-                              {attachedPhoto.fileName}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions on right */}
-                  <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                    {attachedPhoto ? (
-                      <div className="flex items-center gap-2">
-                        {/* Thumbnail preview */}
-                        <button
-                          onClick={() => onInspectPhoto(attachedPhoto)}
-                          className="relative w-14 h-14 rounded-xl overflow-hidden border border-slate-700 group cursor-pointer"
-                        >
-                          <img
-                            src={attachedPhoto.dataUrl}
-                            alt={attachedPhoto.fileName}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
-                            <Eye className="w-4 h-4" />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                      {/* Status check icon */}
+                      <div className="mt-0.5 shrink-0">
+                        {attachedPhotos.length > 0 ? (
+                          <div className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
+                            <Check className="w-4 h-4 stroke-[3]" />
                           </div>
-                        </button>
-
-                        <div className="flex flex-col gap-1">
-                          <button
-                            onClick={() => onInspectPhoto(attachedPhoto)}
-                            className="px-3 py-1.5 text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors flex items-center gap-1 min-h-[36px]"
+                        ) : (
+                          <div
+                            className={`w-7 h-7 rounded-full flex items-center justify-center border ${
+                              item.isRequired
+                                ? 'border-amber-400/60 text-amber-400 bg-amber-500/10'
+                                : 'border-slate-700 text-slate-500 bg-slate-900'
+                            }`}
                           >
-                            <Eye className="w-3.5 h-3.5 text-amber-400" />
-                            <span>View / Edit</span>
-                          </button>
+                            <Circle className="w-3.5 h-3.5" />
+                          </div>
+                        )}
+                      </div>
 
-                          <button
-                            onClick={() => onStartCapture(currentStage, item)}
-                            className="px-3 py-1 text-[10px] text-slate-400 hover:text-white"
-                          >
-                            Retake Photo
-                          </button>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <h3 className="text-sm font-bold text-white">
+                            {item.title}
+                          </h3>
+                          {item.isRequired ? (
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                              Required
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-slate-500">
+                              Optional
+                            </span>
+                          )}
+                          {attachedPhotos.length > 0 && (
+                            <span className="text-[11px] font-semibold text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                              {attachedPhotos.length} {attachedPhotos.length === 1 ? 'photo' : 'photos'}
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                          {item.description}
+                        </p>
+
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 font-mono">
+                          <span>Target: {item.angleOrFeature}</span>
                         </div>
                       </div>
-                    ) : (
+                    </div>
+
+                    {/* Action button: Capture / Add another photo */}
+                    <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
                       <button
-                        onClick={() => onStartCapture(currentStage, item)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm min-h-[44px] cursor-pointer ${
-                          item.isRequired
+                        onClick={() => onStartCapture(currentStage, item, attachedPhotos.length)}
+                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm min-h-[40px] cursor-pointer ${
+                          attachedPhotos.length > 0
+                            ? 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 hover:border-amber-400/50'
+                            : item.isRequired
                             ? 'bg-amber-400 hover:bg-amber-300 text-slate-950'
                             : 'bg-slate-800 hover:bg-slate-700 text-white'
                         }`}
                       >
-                        <Camera className="w-4 h-4 stroke-[2.5]" />
-                        <span>Capture Photo</span>
+                        {attachedPhotos.length > 0 ? (
+                          <>
+                            <Plus className="w-4 h-4 stroke-[2.5]" />
+                            <span>Add Photo</span>
+                          </>
+                        ) : (
+                          <>
+                            <Camera className="w-4 h-4 stroke-[2.5]" />
+                            <span>Capture Photo</span>
+                          </>
+                        )}
                       </button>
-                    )}
+                    </div>
                   </div>
+
+                  {/* Multiple Photos Thumbnail Strip */}
+                  {attachedPhotos.length > 0 && (
+                    <div className="pt-2 border-t border-slate-800/80">
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-2">
+                        <span>Captured record ({attachedPhotos.length}):</span>
+                        <span className="text-[10px] text-slate-500">Tap thumbnail to inspect & markup</span>
+                      </div>
+                      <div className="flex items-center gap-3 overflow-x-auto pb-1.5">
+                        {attachedPhotos.map((photo, pIdx) => (
+                          <div
+                            key={photo.id}
+                            onClick={() => onInspectPhoto(photo)}
+                            className="relative group shrink-0 cursor-pointer rounded-xl overflow-hidden border border-slate-700 hover:border-amber-400 bg-slate-950 transition-all w-24"
+                          >
+                            <div className="w-24 h-18 bg-black relative">
+                              <img
+                                src={photo.dataUrl}
+                                alt={photo.fileName}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                              <div className="absolute top-1 left-1 px-1.5 py-0.2 rounded bg-slate-950/80 backdrop-blur-sm text-[9px] font-mono font-bold text-amber-400">
+                                #{pIdx + 1}
+                              </div>
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+                                <Eye className="w-4 h-4" />
+                              </div>
+                            </div>
+                            <div className="p-1 text-[9px] font-mono text-slate-400 truncate text-center bg-slate-900">
+                              {photo.conditionRating || 'Verified'}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Direct "+ Add" thumbnail trigger button */}
+                        <button
+                          onClick={() => onStartCapture(currentStage, item, attachedPhotos.length)}
+                          className="w-24 h-[92px] rounded-xl border border-dashed border-slate-700 hover:border-amber-400 bg-slate-950/60 hover:bg-slate-900 flex flex-col items-center justify-center text-slate-400 hover:text-amber-300 gap-1 transition-colors shrink-0 cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span className="text-[10px] font-semibold">+ Add More</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -478,6 +506,62 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Delete Project Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
+          <div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-project-title"
+            className="bg-slate-900 border border-rose-500/30 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 id="delete-project-title" className="text-base font-bold text-white tracking-tight">
+                  Delete Project: {project.name}?
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Folder: <code className="font-mono text-amber-400">SNAPs/{project.name}/</code>
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-rose-950/30 border border-rose-800/40 rounded-xl space-y-1.5 text-xs text-rose-200">
+              <p className="font-semibold text-rose-300 flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+                <span>This action cannot be undone</span>
+              </p>
+              <p className="text-slate-300">
+                Permanently deletes this project, its <strong className="text-white">{project.photos.length} captured repair photos</strong>, and all stage checklists from the SNAPs repository.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors min-h-[42px] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  onDeleteProject(project.id);
+                }}
+                className="px-4 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-xl transition-colors min-h-[42px] shadow-sm cursor-pointer"
+              >
+                Delete Whole Project
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

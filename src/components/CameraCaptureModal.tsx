@@ -12,6 +12,7 @@ interface CameraCaptureModalProps {
   checklistItemId?: string;
   checklistItemTitle: string;
   leadEngineer: string;
+  existingPhotosCount?: number;
   onPhotoCaptured: (photoData: {
     dataUrl: string;
     fileName: string;
@@ -34,6 +35,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
   checklistItemId,
   checklistItemTitle,
   leadEngineer,
+  existingPhotosCount = 0,
   onPhotoCaptured,
 }) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -189,7 +191,8 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
     if (!capturedDataUrl) return;
 
     const now = new Date();
-    const fileName = generatePhotoFileName(projectName, stageCode, customTag, now);
+    const photoNumber = existingPhotosCount + 1;
+    const fileName = generatePhotoFileName(projectName, stageCode, customTag, now, photoNumber);
     const logicalPath = generateLogicalPath(projectName, stageFolderName, fileName);
 
     // Estimate byte size from dataUrl
@@ -209,7 +212,8 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
     onClose();
   };
 
-  const previewFileName = generatePhotoFileName(projectName, stageCode, customTag);
+  const nextIndex = existingPhotosCount + 1;
+  const previewFileName = generatePhotoFileName(projectName, stageCode, customTag, new Date(), nextIndex);
   const previewPath = generateLogicalPath(projectName, stageFolderName, previewFileName);
 
   return (
@@ -226,7 +230,9 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
             <div className="flex items-center gap-2">
               <Camera className="w-4 h-4 text-amber-400 shrink-0" />
               <h2 id="camera-title" className="text-sm font-bold text-white tracking-tight truncate">
-                {checklistItemTitle ? `Capture: ${checklistItemTitle}` : 'Workshop Photo Capture'}
+                {checklistItemTitle
+                  ? `Capture: ${checklistItemTitle} (Photo #${nextIndex})`
+                  : 'Workshop Photo Capture'}
               </h2>
             </div>
             <div className="text-[11px] font-mono text-slate-400 truncate mt-0.5">

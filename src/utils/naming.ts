@@ -45,13 +45,15 @@ export function generatePhotoFileName(
   projectName: string,
   stageCode: string,
   photoTag: string,
-  date: Date = new Date()
+  date: Date = new Date(),
+  sequenceIndex?: number
 ): string {
   const safeProject = sanitizeFolderName(projectName);
   const safeStage = stageCode.toUpperCase();
   const safeTag = sanitizeFileNameTag(photoTag);
   const timestamp = formatTimestampCompact(date);
-  return `${safeProject}_${safeStage}_${safeTag}_${timestamp}.jpg`;
+  const seqSuffix = sequenceIndex && sequenceIndex > 1 ? `_#${String(sequenceIndex).padStart(2, '0')}` : '';
+  return `${safeProject}_${safeStage}_${safeTag}${seqSuffix}_${timestamp}.jpg`;
 }
 
 export function generateLogicalPath(
@@ -89,7 +91,7 @@ export function formatDateTimeNice(isoString: string): string {
 }
 
 export function calculateProjectProgress(
-  stages: { checklist: { id?: string; isRequired: boolean; capturedPhotoId?: string }[] }[],
+  stages: { checklist: { id?: string; isRequired: boolean; capturedPhotoId?: string; capturedPhotoIds?: string[] }[] }[],
   photos: { checklistItemId?: string }[]
 ): {
   requiredTotal: number;
@@ -104,7 +106,10 @@ export function calculateProjectProgress(
     stage.checklist.forEach((item) => {
       if (item.isRequired) {
         requiredTotal++;
-        const hasPhoto = photos.some((p) => p.checklistItemId === item.id) || !!item.capturedPhotoId;
+        const hasPhoto =
+          photos.some((p) => p.checklistItemId === item.id) ||
+          (item.capturedPhotoIds && item.capturedPhotoIds.length > 0) ||
+          !!item.capturedPhotoId;
         if (hasPhoto) {
           requiredCompleted++;
         }
