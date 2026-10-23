@@ -18,7 +18,8 @@ import {
   Image as ImageIcon,
   Check,
   Trash2,
-  Plus
+  Plus,
+  BarChart3
 } from 'lucide-react';
 
 interface StageChecklistViewProps {
@@ -51,16 +52,63 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
 
   const currentStage = project.stages.find((s) => s.id === project.currentStageId) || project.stages[0];
   const stagePhotos = project.photos.filter((p) => p.stageId === currentStage.id);
-  const overallProgress = calculateProjectProgress(project.stages, project.photos);
 
-  // Stage required photo count
+  // PROJECT PROGRESS TRACKING CALCULATION
+  // Calculate completion percentage for each stage (STG01 to STG06)
+  // Stage Completion % = (Completed Items ÷ Total Required Items in Stage) × 100
+  let totalRequiredAcrossAll = 0;
+  let totalCompletedAcrossAll = 0;
+
+  const stageProgressList = project.stages.map((stage) => {
+    const requiredItems = stage.checklist.filter((c) => c.isRequired);
+    const completedRequiredItems = requiredItems.filter((c) => {
+      return (
+        project.photos.some((p) => p.checklistItemId === c.id) ||
+        (c.capturedPhotoIds && c.capturedPhotoIds.length > 0) ||
+        !!c.capturedPhotoId
+      );
+    });
+
+    totalRequiredAcrossAll += requiredItems.length;
+    totalCompletedAcrossAll += completedRequiredItems.length;
+
+    // Stage Completion % = (Completed Items ÷ Total Required Items in Stage) × 100
+    const stageCompletionPct = requiredItems.length === 0
+      ? 100
+      : Math.round((completedRequiredItems.length / requiredItems.length) * 100);
+
+    const isStageDone = requiredItems.length > 0 && completedRequiredItems.length === requiredItems.length;
+
+    return {
+      stage,
+      requiredCount: requiredItems.length,
+      completedCount: completedRequiredItems.length,
+      stageCompletionPct,
+      isStageDone,
+    };
+  });
+
+  // Overall Project Completion % = (Total Completed Items across STG01–STG06 ÷ Total Required Items across STG01–STG06) × 100
+  // Note: Do not simply add the six stage percentages together.
+  const overallProjectCompletionPct = totalRequiredAcrossAll === 0
+    ? 0
+    : Math.round((totalCompletedAcrossAll / totalRequiredAcrossAll) * 100);
+
+  // Active current stage stats
+  const currentStageStats = stageProgressList.find((s) => s.stage.id === currentStage.id) || {
+    requiredCount: 0,
+    completedCount: 0,
+    stageCompletionPct: 0,
+  };
   const stageRequiredItems = currentStage.checklist.filter((c) => c.isRequired);
   const stageCompletedItems = stageRequiredItems.filter((c) => {
-    return project.photos.some((p) => p.checklistItemId === c.id) || !!c.capturedPhotoId;
+    return (
+      project.photos.some((p) => p.checklistItemId === c.id) ||
+      (c.capturedPhotoIds && c.capturedPhotoIds.length > 0) ||
+      !!c.capturedPhotoId
+    );
   });
-  const stageProgressPct = stageRequiredItems.length === 0
-    ? 100
-    : Math.round((stageCompletedItems.length / stageRequiredItems.length) * 100);
+  const stageProgressPct = currentStageStats.stageCompletionPct;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 pb-24">
@@ -132,60 +180,150 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
         </div>
       </div>
 
-      {/* Repair Stages Horizontal Navigation Strip */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs text-slate-400 px-1">
-          <span className="font-semibold uppercase tracking-wider text-[11px]">
-            Repair Stage Workflow
-          </span>
-          <span className="font-mono">
-            Overall: {overallProgress.requiredCompleted}/{overallProgress.requiredTotal} items ({overallProgress.percentage}%)
-          </span>
+      {/* ======================================================== */}
+      {/* PROJECT PROGRESS TRACKING (STG01 - STG06 & Overall)      */}
+      {/* ======================================================== */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-5 shadow-sm">
+        {/* Overall Project Completion Header Bar */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800/90">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <BarChart3 className="w-3.5 h-3.5" />
+              </div>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-white">
+                Project Progress Tracking
+              </h2>
+              <span className="text-slate-600">·</span>
+              <span className="text-xs font-mono text-amber-400 font-semibold">
+                STG01 — STG06
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              Completion percentage across all standardized repair workflow stages
+            </p>
+          </div>
+
+          {/* Overall Project Completion Gauge Box */}
+          <div className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 min-w-[320px] max-w-md w-full lg:w-auto space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-semibold text-slate-300">Overall Project Completion</span>
+              <span className="font-mono font-black text-base text-amber-400">
+                {overallProjectCompletionPct}%
+              </span>
+            </div>
+
+            {/* Overall Progress Bar */}
+            <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  overallProjectCompletionPct === 100
+                    ? 'bg-emerald-500'
+                    : overallProjectCompletionPct > 35
+                    ? 'bg-amber-400'
+                    : 'bg-amber-500/80'
+                }`}
+                style={{ width: `${overallProjectCompletionPct}%` }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono pt-0.5">
+              <span>{totalCompletedAcrossAll} of {totalRequiredAcrossAll} required items</span>
+              <span className="text-slate-400">
+                {overallProjectCompletionPct === 100 ? 'COMPLETE' : 'IN PROGRESS'}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-          {project.stages.map((stage, idx) => {
-            const isSelected = stage.id === currentStage.id;
-            const stagePhotoCount = project.photos.filter((p) => p.stageId === stage.id).length;
-            const reqItems = stage.checklist.filter((c) => c.isRequired);
-            const doneReq = reqItems.filter((c) =>
-              project.photos.some((p) => p.checklistItemId === c.id) || !!c.capturedPhotoId
-            ).length;
-            const isStageDone = reqItems.length > 0 && doneReq === reqItems.length;
+        {/* Six Workflow Stages (STG01 to STG06) Grid with individual completion % & progress bars */}
+        <div>
+          <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-2.5 px-0.5">
+            <span>Workflow Stages Completion % (STG01 — STG06)</span>
+            <span className="text-[10px] text-slate-500 lowercase font-normal">tap any stage to switch view</span>
+          </div>
 
-            return (
-              <button
-                key={stage.id}
-                onClick={() => onSelectStage(stage.id)}
-                className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between min-h-[76px] cursor-pointer ${
-                  isSelected
-                    ? 'bg-slate-800 border-amber-400 ring-1 ring-amber-400/40 shadow-sm'
-                    : isStageDone
-                    ? 'bg-slate-900/90 border-emerald-500/30 hover:border-emerald-500/60'
-                    : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1 w-full text-[11px] mb-1">
-                  <span className="font-mono text-slate-400 font-semibold">{stage.stageCode}</span>
-                  {isStageDone ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
-                  ) : (
-                    <span className="text-[10px] text-slate-500 font-mono">
-                      {doneReq}/{reqItems.length}
-                    </span>
-                  )}
-                </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+            {stageProgressList.map(({ stage, requiredCount, completedCount, stageCompletionPct, isStageDone }) => {
+              const isSelected = stage.id === currentStage.id;
+              const stagePhotoCount = project.photos.filter((p) => p.stageId === stage.id).length;
 
-                <div className="font-semibold text-xs text-white truncate w-full">
-                  {stage.title.replace(/^\d+\.\s*/, '')}
-                </div>
+              return (
+                <button
+                  key={stage.id}
+                  type="button"
+                  onClick={() => onSelectStage(stage.id)}
+                  className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between min-h-[120px] cursor-pointer group ${
+                    isSelected
+                      ? 'bg-slate-800 border-amber-400 ring-2 ring-amber-400/30 shadow-md'
+                      : isStageDone
+                      ? 'bg-slate-950/90 border-emerald-500/40 hover:border-emerald-500/80'
+                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  {/* Top: Stage Code & Status Badge */}
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <span className="font-mono text-xs font-bold text-amber-400">
+                        {stage.stageCode}
+                      </span>
+                      {isStageDone ? (
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                          <Check className="w-3 h-3 stroke-[3]" />
+                          <span>100%</span>
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-mono text-slate-400">
+                          {completedCount}/{requiredCount}
+                        </span>
+                      )}
+                    </div>
 
-                <div className="text-[10px] text-slate-400 mt-1 flex items-center justify-between">
-                  <span>{stagePhotoCount} photos</span>
-                </div>
-              </button>
-            );
-          })}
+                    <div className="font-semibold text-xs text-white truncate mb-2">
+                      {stage.title.replace(/^\d+\.\s*/, '')}
+                    </div>
+                  </div>
+
+                  {/* Bottom: Stage Completion % & Individual Progress Bar */}
+                  <div className="space-y-1.5 pt-1.5 border-t border-slate-800/80 w-full">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[10px] text-slate-400">Stage Progress</span>
+                      <span
+                        className={`font-mono font-bold text-xs ${
+                          stageCompletionPct === 100
+                            ? 'text-emerald-400'
+                            : stageCompletionPct > 0
+                            ? 'text-amber-400'
+                            : 'text-slate-500'
+                        }`}
+                      >
+                        {stageCompletionPct}%
+                      </span>
+                    </div>
+
+                    {/* Stage Progress Bar */}
+                    <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          stageCompletionPct === 100
+                            ? 'bg-emerald-500'
+                            : stageCompletionPct > 0
+                            ? 'bg-amber-400'
+                            : 'bg-slate-700'
+                        }`}
+                        style={{ width: `${stageCompletionPct}%` }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono pt-0.5">
+                      <span>{completedCount}/{requiredCount} req</span>
+                      <span>{stagePhotoCount} {stagePhotoCount === 1 ? 'photo' : 'photos'}</span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
