@@ -83,23 +83,23 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
   const previewFolder = projectName.trim() ? sanitizeFolderName(projectName) : 'Project_Name';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
       <div 
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-project-title"
-        className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+        className="bg-white border border-slate-200 rounded-xl w-full max-w-lg overflow-hidden shadow-xl animate-in fade-in zoom-in-95 duration-150"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <div>
-            <h2 id="new-project-title" className="text-lg font-bold text-white tracking-tight">Create New Project</h2>
-            <p className="text-xs text-slate-400">Initialize a dedicated repair photo folder under SNAPs/</p>
+            <h2 id="new-project-title" className="text-lg font-bold text-slate-900 tracking-tight">Create New Project</h2>
+            <p className="text-xs text-slate-500">Initialize a dedicated repair photo folder under SNAPs/</p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -108,18 +108,18 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Logical Path Preview */}
-          <div className="bg-slate-950 rounded-xl p-3 border border-slate-800/80 flex items-center gap-2.5 text-xs">
-            <Folder className="w-4 h-4 text-amber-500 shrink-0" />
+          <div className="bg-slate-50 rounded-lg p-3 border border-slate-200 flex items-center gap-2.5 text-xs">
+            <Folder className="w-4 h-4 text-blue-600 shrink-0" />
             <div className="font-mono truncate">
               <span className="text-slate-500">Root / </span>
-              <span className="text-amber-400 font-semibold">SNAPs/{previewFolder}/</span>
+              <span className="text-blue-700 font-semibold">SNAPs/{previewFolder}/</span>
             </div>
           </div>
 
           {/* Project Name (MANDATORY per Sub-goal 3) */}
           <div className="space-y-1.5">
-            <label htmlFor="projectNameInput" className="block text-xs font-semibold text-slate-200">
-              Project Name <span className="text-rose-400">*</span>
+            <label htmlFor="projectNameInput" className="block text-xs font-semibold text-slate-800">
+              Project Name <span className="text-rose-600">*</span>
             </label>
             <input
               id="projectNameInput"
@@ -132,30 +132,30 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
                 if (error) setError(null);
               }}
               placeholder="e.g. SG-Repair-2026-004, Rotor-Job-55412"
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-mono"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 font-mono shadow-xs"
             />
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-500">
               Unique job ID used for automatic photo folder generation and image naming.
             </p>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Asset Equipment Type */}
           <div className="space-y-1.5">
-            <label htmlFor="assetTypeSelect" className="block text-xs font-semibold text-slate-200">
+            <label htmlFor="assetTypeSelect" className="block text-xs font-semibold text-slate-800">
               Asset / Equipment Type
             </label>
             <select
               id="assetTypeSelect"
               value={assetType}
               onChange={(e) => setAssetType(e.target.value as AssetType)}
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-400"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-blue-600 shadow-xs"
             >
               {ASSET_TYPES.map((type) => (
                 <option key={type} value={type}>
@@ -168,7 +168,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
           {/* Additional Workshop Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div className="space-y-1">
-              <label htmlFor="workOrderInput" className="block text-xs font-medium text-slate-300">
+              <label htmlFor="workOrderInput" className="block text-xs font-medium text-slate-700">
                 Work Order # (Optional)
               </label>
               <input
@@ -177,12 +177,12 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
                 value={workOrderNumber}
                 onChange={(e) => setWorkOrderNumber(e.target.value)}
                 placeholder="e.g. WO-90422"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 font-mono shadow-xs"
               />
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="leadEngineerInput" className="block text-xs font-medium text-slate-300">
+              <label htmlFor="leadEngineerInput" className="block text-xs font-medium text-slate-700">
                 Lead Engineer
               </label>
               <input
@@ -191,14 +191,14 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
                 value={leadEngineer}
                 onChange={(e) => setLeadEngineer(e.target.value)}
                 placeholder="Engineer name"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 shadow-xs"
               />
             </div>
           </div>
 
           {/* Workshop Bay */}
           <div className="space-y-1">
-            <label htmlFor="workshopLocationInput" className="block text-xs font-medium text-slate-300">
+            <label htmlFor="workshopLocationInput" className="block text-xs font-medium text-slate-700">
               Workshop Bay / Stand
             </label>
             <input
@@ -207,23 +207,23 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
               value={workshopLocation}
               onChange={(e) => setWorkshopLocation(e.target.value)}
               placeholder="e.g. Bay 3 — Heavy Balancing"
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 shadow-xs"
             />
           </div>
 
           {/* Action Buttons as specified in Sub-goal 3 */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors min-h-[44px]"
+              className="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors min-h-[44px] cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!projectName.trim()}
-              className="px-5 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 disabled:pointer-events-none rounded-xl transition-colors shadow-sm min-h-[44px]"
+              className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none rounded-lg transition-colors shadow-xs min-h-[44px] cursor-pointer active:scale-[0.98]"
             >
               Create Project
             </button>

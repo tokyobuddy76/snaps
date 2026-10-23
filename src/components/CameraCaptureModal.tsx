@@ -164,7 +164,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
     ctx.fillRect(0, height - bannerHeight, width, bannerHeight);
 
     // Text color
-    ctx.fillStyle = '#f59e0b'; // amber
+    ctx.fillStyle = '#60a5fa'; // industrial clear blue accent
     ctx.font = `bold ${Math.max(12, Math.round(bannerHeight * 0.28))}px monospace`;
     ctx.fillText(`SNAPs // ${projectName} // ${stageCode}`, 16, height - bannerHeight + bannerHeight * 0.42);
 
@@ -217,25 +217,25 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
   const previewPath = generateLogicalPath(projectName, stageFolderName, previewFileName);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs">
       <div 
         role="dialog"
         aria-modal="true"
         aria-labelledby="camera-title"
-        className="relative w-full h-full max-w-4xl max-h-[100dvh] flex flex-col bg-slate-950 sm:border sm:border-slate-800 sm:rounded-2xl overflow-hidden"
+        className="relative w-full h-full max-w-4xl max-h-[100dvh] flex flex-col bg-white sm:border sm:border-slate-200 sm:rounded-xl overflow-hidden shadow-2xl"
       >
         {/* Top Bar */}
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800 shrink-0 z-10">
+        <div className="flex items-center justify-between px-4 py-3 bg-slate-50/90 border-b border-slate-200 shrink-0 z-10">
           <div className="min-w-0 pr-2">
             <div className="flex items-center gap-2">
-              <Camera className="w-4 h-4 text-amber-400 shrink-0" />
-              <h2 id="camera-title" className="text-sm font-bold text-white tracking-tight truncate">
+              <Camera className="w-4 h-4 text-blue-600 shrink-0" />
+              <h2 id="camera-title" className="text-sm font-bold text-slate-900 tracking-tight truncate">
                 {checklistItemTitle
                   ? `Capture: ${checklistItemTitle} (Photo #${nextIndex})`
                   : 'Workshop Photo Capture'}
               </h2>
             </div>
-            <div className="text-[11px] font-mono text-slate-400 truncate mt-0.5">
+            <div className="text-[11px] font-mono text-blue-600 truncate mt-0.5">
               {previewPath}
             </div>
           </div>
@@ -248,8 +248,8 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
                   onClick={() => setShowGrid(!showGrid)}
                   title="Toggle alignment grid"
                   aria-label="Toggle alignment grid"
-                  className={`p-2 rounded-lg border text-xs min-h-[44px] min-w-[44px] flex items-center justify-center ${
-                    showGrid ? 'bg-amber-400 text-slate-950 border-amber-400' : 'bg-slate-800 text-slate-300 border-slate-700'
+                  className={`p-2 rounded-lg border text-xs min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors ${
+                    showGrid ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                   }`}
                 >
                   <Grid3X3 className="w-4 h-4" />
@@ -260,7 +260,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
                   onClick={toggleCamera}
                   title="Switch camera"
                   aria-label="Switch camera"
-                  className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  className="p-2 rounded-lg bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:bg-slate-100 min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors"
                 >
                   <SwitchCamera className="w-4 h-4" />
                 </button>
@@ -271,7 +271,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
               type="button"
               onClick={onClose}
               aria-label="Close capture"
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 min-h-[40px] min-w-[40px] flex items-center justify-center transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -315,19 +315,19 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
 
               {/* Camera Error / Fallback Banner */}
               {cameraError && (
-                <div className="absolute inset-4 m-auto max-w-md h-fit p-6 bg-slate-900/95 border border-slate-700 rounded-2xl text-center space-y-4 shadow-xl">
-                  <div className="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
+                <div className="absolute inset-4 m-auto max-w-md h-fit p-6 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl text-center space-y-4 shadow-xl">
+                  <div className="w-12 h-12 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto">
                     <Camera className="w-6 h-6" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-base font-bold text-white">Direct Camera Access</h3>
-                    <p className="text-xs text-slate-300">{cameraError}</p>
+                    <h3 className="text-base font-bold text-slate-900">Direct Camera Access</h3>
+                    <p className="text-xs text-slate-600">{cameraError}</p>
                   </div>
                   <div className="pt-2">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full py-3 px-4 bg-amber-400 text-slate-950 font-bold text-sm rounded-xl flex items-center justify-center gap-2 hover:bg-amber-300 min-h-[44px]"
+                      className="w-full py-3 px-4 bg-blue-600 text-white font-semibold text-xs rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 min-h-[44px] shadow-xs"
                     >
                       <Upload className="w-4 h-4" />
                       <span>Use Phone Camera / Browse Files</span>
@@ -364,21 +364,21 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
         </div>
 
         {/* Bottom Inspection Metadata & Shutter Controls */}
-        <div className="p-4 bg-slate-900 border-t border-slate-800 space-y-3 shrink-0 pb-safe">
+        <div className="p-4 bg-white border-t border-slate-200 space-y-3 shrink-0 pb-safe">
           {capturedDataUrl ? (
             /* Confirm Screen Controls */
             <div className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Condition Rating */}
                 <div>
-                  <label htmlFor="conditionRatingSelect" className="block text-[11px] font-semibold text-slate-400 mb-1">
+                  <label htmlFor="conditionRatingSelect" className="block text-[11px] font-semibold text-slate-700 mb-1">
                     Condition Finding
                   </label>
                   <select
                     id="conditionRatingSelect"
                     value={conditionRating}
                     onChange={(e) => setConditionRating(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-400"
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                   >
                     <option value="Acceptable">Acceptable (Normal Wear)</option>
                     <option value="Minor Defect">Minor Defect (Light Polish/Scuff)</option>
@@ -389,7 +389,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
 
                 {/* Tag / Feature label */}
                 <div>
-                  <label htmlFor="featureLabelInput" className="block text-[11px] font-semibold text-slate-400 mb-1">
+                  <label htmlFor="featureLabelInput" className="block text-[11px] font-semibold text-slate-700 mb-1">
                     Feature / Tag
                   </label>
                   <input
@@ -397,14 +397,14 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
                     type="text"
                     value={customTag}
                     onChange={(e) => setCustomTag(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-400"
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                   />
                 </div>
               </div>
 
               {/* Inspection Notes */}
               <div>
-                <label htmlFor="inspectionNotesInput" className="block text-[11px] font-semibold text-slate-400 mb-1">
+                <label htmlFor="inspectionNotesInput" className="block text-[11px] font-semibold text-slate-700 mb-1">
                   Engineer Inspection Notes (Optional)
                 </label>
                 <input
@@ -413,7 +413,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
                   value={engineerNotes}
                   onChange={(e) => setEngineerNotes(e.target.value)}
                   placeholder="e.g. Scored depth ~0.08mm on journal surface. Requires grind."
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                 />
               </div>
 
@@ -422,7 +422,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
                 <button
                   type="button"
                   onClick={retakePhoto}
-                  className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors min-h-[48px]"
+                  className="flex-1 py-3 px-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold text-xs rounded-lg flex items-center justify-center gap-2 transition-colors min-h-[44px]"
                 >
                   <RefreshCw className="w-4 h-4" />
                   <span>Retake</span>
@@ -431,7 +431,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
                 <button
                   type="button"
                   onClick={confirmAndSavePhoto}
-                  className="flex-1 py-3 px-4 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors min-h-[48px] shadow-sm"
+                  className="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg flex items-center justify-center gap-2 transition-colors min-h-[44px] shadow-xs"
                 >
                   <Check className="w-4 h-4 stroke-[3]" />
                   <span>Accept & Save to SNAPs</span>
@@ -445,9 +445,9 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium min-h-[44px]"
+                className="flex items-center gap-2 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium min-h-[44px]"
               >
-                <Upload className="w-4 h-4 text-amber-400" />
+                <Upload className="w-4 h-4 text-blue-600" />
                 <span className="hidden sm:inline">Upload File</span>
               </button>
 
@@ -456,22 +456,22 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
                 type="button"
                 onClick={captureFrame}
                 aria-label="Capture photo"
-                className="w-16 h-16 rounded-full border-4 border-amber-400 bg-amber-500 hover:bg-amber-400 active:scale-95 transition-all flex items-center justify-center shadow-lg shadow-amber-500/20 cursor-pointer"
+                className="w-16 h-16 rounded-full border-4 border-blue-600 bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center shadow-md cursor-pointer"
               >
                 <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center">
-                  <Camera className="w-5 h-5 text-slate-950" />
+                  <Camera className="w-5 h-5 text-blue-600" />
                 </div>
               </button>
 
               {/* Watermark toggle */}
-              <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
+              <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={addWatermark}
                   onChange={(e) => setAddWatermark(e.target.checked)}
-                  className="rounded border-slate-700 text-amber-400 focus:ring-amber-400 bg-slate-950"
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-[11px] text-slate-400">Timestamp Watermark</span>
+                <span className="text-[11px] text-slate-600 font-medium">Timestamp Watermark</span>
               </label>
             </div>
           )}

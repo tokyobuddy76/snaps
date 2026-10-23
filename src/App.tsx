@@ -345,7 +345,7 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-100 text-slate-800 flex flex-col font-sans">
       {/* Top Bar adhering to Top Bar Contract */}
       <Header
         onNewProject={() => setIsNewProjectModalOpen(true)}
@@ -359,8 +359,8 @@ export default function App() {
       {/* Main View Area */}
       <main className="flex-1">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-24 text-slate-400 space-y-3">
-            <RefreshCw className="w-8 h-8 animate-spin text-amber-400" />
+          <div className="flex flex-col items-center justify-center py-24 text-slate-500 space-y-3">
+            <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
             <p className="text-sm font-medium">Loading SNAPs repair photo repository...</p>
           </div>
         ) : activeProject ? (
@@ -384,13 +384,13 @@ export default function App() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
             {/* Top of page title and subtitle as specified in Sub-goal 1 */}
             <div className="text-center space-y-2 pt-2">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900">
                 SNAPs
               </h1>
-              <p className="text-base sm:text-lg text-amber-400 font-semibold tracking-wide">
+              <p className="text-base sm:text-lg text-blue-600 font-bold tracking-wide">
                 Repair Photo Management
               </p>
-              <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
+              <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
                 Smart Networked Asset Photos: Standardized photo checklists, auto-naming, and organized folder structures for workshop turbomachinery and equipment repairs.
               </p>
             </div>
@@ -400,7 +400,7 @@ export default function App() {
               {/* "+ New Project" Button */}
               <button
                 onClick={() => setIsNewProjectModalOpen(true)}
-                className="w-full sm:w-1/2 flex items-center justify-center gap-2.5 px-6 py-4 text-sm font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-2xl shadow-lg shadow-amber-500/10 active:scale-[0.98] transition-all cursor-pointer min-h-[52px]"
+                className="w-full sm:w-1/2 flex items-center justify-center gap-2.5 px-6 py-4 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs active:scale-[0.98] transition-all cursor-pointer min-h-[52px]"
               >
                 <Plus className="w-5 h-5 stroke-[2.5]" />
                 <span>+ New Project</span>
@@ -409,19 +409,19 @@ export default function App() {
               {/* "Open Existing Project" Button */}
               <button
                 onClick={() => setIsOpenExistingModalOpen(true)}
-                className="w-full sm:w-1/2 flex items-center justify-center gap-2.5 px-6 py-4 text-sm font-bold text-slate-200 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 rounded-2xl active:scale-[0.98] transition-all cursor-pointer min-h-[52px]"
+                className="w-full sm:w-1/2 flex items-center justify-center gap-2.5 px-6 py-4 text-sm font-bold text-slate-800 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-xs active:scale-[0.98] transition-all cursor-pointer min-h-[52px]"
               >
-                <FolderOpen className="w-5 h-5 text-amber-400" />
+                <FolderOpen className="w-5 h-5 text-blue-600" />
                 <span>Open Existing Project</span>
               </button>
             </div>
 
             {/* Root Folder Quick Strip */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2.5 font-mono text-slate-300">
-                <FolderTree className="w-4 h-4 text-amber-400 shrink-0" />
+            <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xs">
+              <div className="flex items-center gap-2.5 font-mono text-slate-700">
+                <FolderTree className="w-4 h-4 text-blue-600 shrink-0" />
                 <span>Root Repository:</span>
-                <span className="font-bold text-amber-400">SNAPs/</span>
+                <span className="font-bold text-blue-600">SNAPs/</span>
                 <span className="text-slate-500 hidden md:inline">
                   (All photos are automatically sorted into dedicated project folders)
                 </span>
@@ -429,7 +429,7 @@ export default function App() {
 
               <button
                 onClick={() => setIsExplorerModalOpen(true)}
-                className="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
               >
                 <span>Browse SNAPs/ Directory</span>
                 <span>→</span>
@@ -440,10 +440,10 @@ export default function App() {
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight">
+                  <h2 className="text-lg font-bold text-slate-900 tracking-tight">
                     Active Repair Projects ({projects.length})
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     Select a project card below to open its guided photo checklist
                   </p>
                 </div>
@@ -451,25 +451,25 @@ export default function App() {
                 {/* Filter and Search Bar */}
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Filter projects..."
-                      className="pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 w-44 sm:w-56"
+                      className="pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 shadow-xs w-44 sm:w-56"
                     />
                   </div>
 
-                  <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+                  <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-lg border border-slate-200 text-xs">
                     {(['All', 'In Progress', 'Complete'] as const).map((st) => (
                       <button
                         key={st}
                         onClick={() => setStatusFilter(st)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                           statusFilter === st
-                            ? 'bg-amber-400 text-slate-950 font-bold'
-                            : 'text-slate-400 hover:text-white'
+                            ? 'bg-white text-slate-900 font-bold shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
                         }`}
                       >
                         {st}
@@ -481,12 +481,12 @@ export default function App() {
 
               {/* Cards Grid */}
               {filteredProjects.length === 0 ? (
-                <div className="text-center py-16 bg-slate-900/40 border border-slate-800 rounded-2xl p-8 space-y-3">
-                  <Camera className="w-10 h-10 text-slate-600 mx-auto" />
-                  <p className="text-sm font-medium text-slate-300">No repair projects found matching filter</p>
+                <div className="text-center py-16 bg-white border border-slate-200 rounded-xl p-8 space-y-3 shadow-xs">
+                  <Camera className="w-10 h-10 text-slate-400 mx-auto" />
+                  <p className="text-sm font-medium text-slate-700">No repair projects found matching filter</p>
                   <button
                     onClick={() => setIsNewProjectModalOpen(true)}
-                    className="mt-2 px-4 py-2 bg-amber-400 text-slate-950 font-bold text-xs rounded-xl hover:bg-amber-300 min-h-[44px]"
+                    className="mt-2 px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-700 min-h-[44px] cursor-pointer shadow-xs"
                   >
                     + Create New Project
                   </button>
@@ -509,14 +509,14 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="no-print mt-auto border-t border-slate-900 bg-slate-950/80 px-4 py-6 text-center text-xs text-slate-500">
+      <footer className="no-print mt-auto border-t border-slate-200 bg-white px-4 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-400">SNAPs</span>
+            <span className="font-bold text-slate-700">SNAPs</span>
             <span>·</span>
             <span>Smart Networked Asset Photos</span>
             <span>·</span>
-            <span className="font-mono text-amber-500/80">SNAPs/</span>
+            <span className="font-mono text-blue-600 font-semibold">SNAPs/</span>
           </div>
           <div>Workshop Repair Team · ISO-9001 Photographic Standard</div>
         </div>
