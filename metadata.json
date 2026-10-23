@@ -1,0 +1,6 @@
+{
+  "name": "SNAPs - Repair Photo Management",
+  "description": "Smart Networked Asset Photos: standardized photo checklists, auto-naming, and folder organization for industrial workshop repair engineers.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
