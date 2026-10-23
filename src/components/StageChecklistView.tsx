@@ -121,14 +121,6 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
             <span className="hidden sm:inline">Download ZIP</span>
           </button>
 
-          <button
-            onClick={() => onStartCapture(currentStage)}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-colors shadow-sm min-h-[42px] cursor-pointer"
-          >
-            <Camera className="w-4 h-4 stroke-[2.5]" />
-            <span>Take Photo</span>
-          </button>
-
           {/* Delete Whole Project Button */}
           <button
             onClick={() => setShowDeleteConfirm(true)}
