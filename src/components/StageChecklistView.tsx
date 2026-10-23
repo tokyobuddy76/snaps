@@ -19,7 +19,10 @@ import {
   Check,
   Trash2,
   Plus,
-  BarChart3
+  BarChart3,
+  X,
+  PlusCircle,
+  HelpCircle
 } from 'lucide-react';
 
 interface StageChecklistViewProps {
@@ -33,6 +36,16 @@ interface StageChecklistViewProps {
   onUpdateStageStatus: (stageId: string, newStatus: 'Pending' | 'In Progress' | 'Complete') => void;
   onSelectStage: (stageId: string) => void;
   onDeleteProject: (projectId: string) => void;
+  onAddCustomStep?: (
+    stageId: string,
+    stepData: {
+      title: string;
+      description?: string;
+      angleOrFeature?: string;
+      isRequired?: boolean;
+    }
+  ) => void;
+  onDeleteCustomStep?: (stageId: string, stepId: string) => void;
 }
 
 export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
@@ -46,12 +59,58 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
   onUpdateStageStatus,
   onSelectStage,
   onDeleteProject,
+  onAddCustomStep,
+  onDeleteCustomStep,
 }) => {
   const [activeTab, setActiveTab] = useState<'checklist' | 'photos'>('checklist');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Custom step state
+  const [isAddStepModalOpen, setIsAddStepModalOpen] = useState(false);
+  const [customStepTitle, setCustomStepTitle] = useState('');
+  const [customStepDescription, setCustomStepDescription] = useState('');
+  const [customStepAngle, setCustomStepAngle] = useState('');
+  const [customStepError, setCustomStepError] = useState<string | null>(null);
+  const [stepToDelete, setStepToDelete] = useState<{
+    stageId: string;
+    stepId: string;
+    title: string;
+    photoCount: number;
+  } | null>(null);
+
   const currentStage = project.stages.find((s) => s.id === project.currentStageId) || project.stages[0];
   const stagePhotos = project.photos.filter((p) => p.stageId === currentStage.id);
+
+  // Handle adding custom required step
+  const handleAddStepSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customStepTitle.trim()) {
+      setCustomStepError('Step Name / Photo Required is mandatory.');
+      return;
+    }
+
+    if (onAddCustomStep) {
+      onAddCustomStep(currentStage.id, {
+        title: customStepTitle.trim(),
+        description: customStepDescription.trim() || `Custom required photo work instruction for ${currentStage.stageCode}.`,
+        angleOrFeature: customStepAngle.trim() || 'Custom Angle / Detail',
+        isRequired: true, // Always treated as a mandatory required workflow item
+      });
+    }
+
+    setCustomStepTitle('');
+    setCustomStepDescription('');
+    setCustomStepAngle('');
+    setCustomStepError(null);
+    setIsAddStepModalOpen(false);
+  };
+
+  // Handle deleting custom step
+  const handleConfirmDeleteStep = () => {
+    if (!stepToDelete || !onDeleteCustomStep) return;
+    onDeleteCustomStep(stepToDelete.stageId, stepToDelete.stepId);
+    setStepToDelete(null);
+  };
 
   // PROJECT PROGRESS TRACKING CALCULATION
   // Calculate completion percentage for each stage (STG01 to STG06)
@@ -396,12 +455,36 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
       {/* Main Stage Content: Checklist or Photos Tab */}
       {activeTab === 'checklist' ? (
         /* Standardized Checklist Work Instructions */
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs text-slate-400 px-1">
-            <span className="font-semibold uppercase tracking-wider text-[11px]">
-              Required Photo Work Instruction
-            </span>
-            <span>Multiple photos can be captured per item</span>
+        <div className="space-y-4">
+          {/* Section Header with + Add Custom Step Button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold uppercase tracking-wider text-xs text-white">
+                  Required Photo Work Instruction
+                </span>
+                <span className="text-slate-600">·</span>
+                <span className="text-xs font-mono font-bold text-amber-400">
+                  {stageCompletedItems.length} of {stageRequiredItems.length} Required Complete ({stageProgressPct}%)
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Standard ISO protocol & engineer custom required photo instructions for {currentStage.stageCode}
+              </p>
+            </div>
+
+            {/* Prominent + Add Custom Step Action */}
+            <button
+              type="button"
+              onClick={() => {
+                setCustomStepError(null);
+                setIsAddStepModalOpen(true);
+              }}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 transition-all cursor-pointer shadow-md shadow-amber-500/10 active:scale-[0.98] min-h-[42px] shrink-0"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>+ Add Custom Step</span>
+            </button>
           </div>
 
           <div className="space-y-3">
@@ -451,8 +534,16 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
                           <h3 className="text-sm font-bold text-white">
                             {item.title}
                           </h3>
+
+                          {/* Predefined or Custom Step Badge */}
+                          {item.isCustom ? (
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-300 bg-purple-500/10 border border-purple-500/30 px-2 py-0.5 rounded-md">
+                              Custom Step
+                            </span>
+                          ) : null}
+
                           {item.isRequired ? (
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
                               Required
                             </span>
                           ) : (
@@ -460,6 +551,7 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
                               Optional
                             </span>
                           )}
+
                           {attachedPhotos.length > 0 && (
                             <span className="text-[11px] font-semibold text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
                               {attachedPhotos.length} {attachedPhotos.length === 1 ? 'photo' : 'photos'}
@@ -477,7 +569,7 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Action button: Capture / Add another photo */}
+                    {/* Action buttons: Capture / Add photo & Delete custom step */}
                     <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
                       <button
                         onClick={() => onStartCapture(currentStage, item, attachedPhotos.length)}
@@ -501,6 +593,25 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
                           </>
                         )}
                       </button>
+
+                      {/* If this is a user-added custom step, provide option to delete */}
+                      {item.isCustom && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStepToDelete({
+                              stageId: currentStage.id,
+                              stepId: item.id,
+                              title: item.title,
+                              photoCount: attachedPhotos.length,
+                            });
+                          }}
+                          title="Delete this custom step"
+                          className="flex items-center justify-center p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-800/60 rounded-xl transition-colors min-h-[40px] min-w-[40px] cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -551,6 +662,21 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
                 </div>
               );
             })}
+
+            {/* Bottom Clear Button: + Add Custom Step to current stage */}
+            <button
+              type="button"
+              onClick={() => {
+                setCustomStepError(null);
+                setIsAddStepModalOpen(true);
+              }}
+              className="w-full py-4 px-4 rounded-2xl border-2 border-dashed border-slate-800 hover:border-amber-400/80 bg-slate-900/40 hover:bg-slate-900 text-slate-300 hover:text-amber-300 transition-all flex items-center justify-center gap-2.5 text-xs font-bold cursor-pointer min-h-[50px] group shadow-sm"
+            >
+              <div className="w-5 h-5 rounded-md bg-amber-500/10 text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Plus className="w-3.5 h-3.5 stroke-[3]" />
+              </div>
+              <span>+ Add Custom Step to {currentStage.stageCode}</span>
+            </button>
           </div>
         </div>
       ) : (
@@ -689,6 +815,213 @@ export const StageChecklistView: React.FC<StageChecklistViewProps> = ({
                 className="px-4 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-xl transition-colors min-h-[42px] shadow-sm cursor-pointer"
               >
                 Delete Whole Project
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Custom Step Modal Dialog */}
+      {isAddStepModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-custom-step-title"
+            className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150 my-8"
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                  <PlusCircle className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h3 id="add-custom-step-title" className="text-base font-bold text-white tracking-tight">
+                    Add Custom Photo Work Instruction
+                  </h3>
+                  <p className="text-xs font-mono text-amber-400 font-medium">
+                    {currentStage.stageCode} · {currentStage.title}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddStepModalOpen(false);
+                  setCustomStepError(null);
+                }}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Impact Calculation Preview Box */}
+            <div className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs">
+              <div className="flex items-center gap-1.5 font-semibold text-amber-400">
+                <BarChart3 className="w-4 h-4 shrink-0" />
+                <span>Completion Percentage Impact</span>
+              </div>
+              <p className="text-slate-300 leading-relaxed">
+                This custom step will be treated as a <strong className="text-white">mandatory required workflow item</strong>.
+              </p>
+              <div className="flex items-center justify-between text-[11px] font-mono bg-slate-900/90 border border-slate-800 rounded-lg px-3 py-2 text-slate-300">
+                <span>{currentStage.stageCode} Required Steps:</span>
+                <span className="text-amber-400 font-bold">
+                  {stageRequiredItems.length} → {stageRequiredItems.length + 1} steps
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Both <strong className="text-slate-300">{currentStage.stageCode} Stage Completion %</strong> and <strong className="text-slate-300">Overall Project Completion %</strong> will immediately adjust upon adding this step.
+              </p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleAddStepSubmit} className="space-y-4">
+              {/* Step Name / Title (Mandatory) */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-200 flex items-center justify-between">
+                  <span>Step Name / Photo Required <span className="text-amber-400">*</span></span>
+                  <span className="text-[10px] text-slate-500 font-normal">Mandatory</span>
+                </label>
+                <input
+                  type="text"
+                  autoFocus
+                  value={customStepTitle}
+                  onChange={(e) => {
+                    setCustomStepTitle(e.target.value);
+                    if (customStepError) setCustomStepError(null);
+                  }}
+                  placeholder="e.g. Bearing Oil Sump Magnetic Plug Inspection"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              {/* Target Angle or Feature (Optional) */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-200 flex items-center justify-between">
+                  <span>Target Angle / Inspection Feature</span>
+                  <span className="text-[10px] text-slate-500 font-normal">Optional</span>
+                </label>
+                <input
+                  type="text"
+                  value={customStepAngle}
+                  onChange={(e) => setCustomStepAngle(e.target.value)}
+                  placeholder="e.g. Close-up 45° angle, Housing underside, Cleaned seal gap"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              {/* Guidance Description (Optional) */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-200 flex items-center justify-between">
+                  <span>Work Instruction Guidance & Notes</span>
+                  <span className="text-[10px] text-slate-500 font-normal">Optional</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={customStepDescription}
+                  onChange={(e) => setCustomStepDescription(e.target.value)}
+                  placeholder="e.g. Check for magnetic debris, fretting wear, or surface scoring before reassembly."
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors resize-none"
+                />
+              </div>
+
+              {/* Treat as Required Workflow Item Checkbox indicator */}
+              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs">
+                <Check className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 stroke-[3]" />
+                <div className="text-slate-300">
+                  <strong className="text-amber-300 font-semibold block">Treated as a Required Workflow Item</strong>
+                  <span>Engineers must complete the photo for this step to achieve 100% stage completion.</span>
+                </div>
+              </div>
+
+              {customStepError && (
+                <div className="p-3 bg-rose-950/40 border border-rose-800/50 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+                  <span>{customStepError}</span>
+                </div>
+              )}
+
+              {/* Modal Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddStepModalOpen(false);
+                    setCustomStepError(null);
+                  }}
+                  className="px-4 py-2.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors min-h-[42px] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl transition-all min-h-[42px] shadow-md shadow-amber-500/20 cursor-pointer flex items-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <span>+ Add Required Step</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Custom Step Confirmation Dialog */}
+      {stepToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-step-title"
+            className="bg-slate-900 border border-rose-500/30 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 id="delete-step-title" className="text-base font-bold text-white tracking-tight">
+                  Delete Custom Step?
+                </h3>
+                <p className="text-xs text-slate-400 truncate max-w-[280px]">
+                  {currentStage.stageCode} · <span className="text-amber-400 font-semibold">{stepToDelete.title}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-rose-950/30 border border-rose-800/40 rounded-xl space-y-2 text-xs text-rose-200">
+              <p className="text-slate-300">
+                This custom step will be removed from <strong className="text-white">{currentStage.stageCode}</strong>.
+              </p>
+              <div className="bg-slate-900/80 p-2.5 rounded-lg border border-rose-900/50 space-y-1 font-mono text-[11px] text-slate-300">
+                <div className="text-amber-300 font-bold">Automatic Recalculation:</div>
+                <div>Stage Completion % and Overall Project Completion % will automatically and immediately recalculate.</div>
+              </div>
+              {stepToDelete.photoCount > 0 && (
+                <p className="text-amber-300/90 text-[11px]">
+                  Notice: {stepToDelete.photoCount} photo(s) captured for this step will remain safely in the stage photo album, but will no longer count toward required workflow completion.
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setStepToDelete(null)}
+                className="px-4 py-2.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors min-h-[42px] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteStep}
+                className="px-4 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-xl transition-colors min-h-[42px] shadow-sm cursor-pointer"
+              >
+                Delete Step & Recalculate %
               </button>
             </div>
           </div>

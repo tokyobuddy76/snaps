@@ -267,6 +267,72 @@ export default function App() {
     });
   };
 
+  // Add custom required photo step to a stage
+  const handleAddCustomStep = async (
+    stageId: string,
+    stepData: {
+      title: string;
+      description?: string;
+      angleOrFeature?: string;
+      isRequired?: boolean;
+    }
+  ) => {
+    if (!activeProject) return;
+
+    const newStep: PhotoChecklistItem = {
+      id: `chk-custom-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      stageId,
+      title: stepData.title.trim(),
+      description: stepData.description?.trim() || 'Custom required photo work instruction.',
+      angleOrFeature: stepData.angleOrFeature?.trim() || 'Custom Detail / Angle',
+      isRequired: stepData.isRequired !== undefined ? stepData.isRequired : true,
+      isCustom: true,
+      capturedPhotoIds: [],
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedStages = activeProject.stages.map((stg) => {
+      if (stg.id === stageId) {
+        return {
+          ...stg,
+          checklist: [...stg.checklist, newStep],
+        };
+      }
+      return stg;
+    });
+
+    const updatedProject: RepairProject = {
+      ...activeProject,
+      updatedAt: new Date().toISOString(),
+      stages: updatedStages,
+    };
+
+    await handleUpdateProject(updatedProject);
+  };
+
+  // Delete custom step from a stage
+  const handleDeleteCustomStep = async (stageId: string, stepId: string) => {
+    if (!activeProject) return;
+
+    const updatedStages = activeProject.stages.map((stg) => {
+      if (stg.id === stageId) {
+        return {
+          ...stg,
+          checklist: stg.checklist.filter((item) => item.id !== stepId),
+        };
+      }
+      return stg;
+    });
+
+    const updatedProject: RepairProject = {
+      ...activeProject,
+      updatedAt: new Date().toISOString(),
+      stages: updatedStages,
+    };
+
+    await handleUpdateProject(updatedProject);
+  };
+
   // Filter projects on home screen
   const filteredProjects = projects.filter((p) => {
     const matchesSearch =
@@ -310,6 +376,8 @@ export default function App() {
             onUpdateStageStatus={handleUpdateStageStatus}
             onSelectStage={handleSelectStage}
             onDeleteProject={handleDeleteProject}
+            onAddCustomStep={handleAddCustomStep}
+            onDeleteCustomStep={handleDeleteCustomStep}
           />
         ) : (
           /* 1. HOME SCREEN (Sub-goal 1 Specification) */
